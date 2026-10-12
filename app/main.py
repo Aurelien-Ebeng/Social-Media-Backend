@@ -84,16 +84,17 @@ def get_post(id: int, response: Response, db: Session = Depends(get_db)):
 
 
 @app.put("/posts/{id}")
-def update_post(id: int, post: Post):
+def update_post(id: int, post: Post, db: Session = Depends(get_db)):
+    post_query = db.query(models.Post).filter(models.Post.id == id)
+    old_post = post_query.first()
 
-    cursor.execute("""UPDATE posts SET title = %s, content=%s, published=%s WHERE id = %s RETURNING *""",
-                   (post.title, post.content, post.published, str(id)))
-    updated_post = cursor.fetchone()
-    conn.commit()
-
-    if updated_post == None:
+    if old_post == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with id: {id} does not exit")
+
+    post_query.update(post.dict(), synchronize_session=False)
+    db.commit()
+    updated_post = post_query.first()
 
     return {"data": updated_post}
 
