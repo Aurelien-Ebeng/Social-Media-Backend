@@ -69,7 +69,8 @@ def create_posts(post: Post, db: Session = Depends(get_db)):
     new_post = models.Post(**post.dict())
     db.add(new_post)  # Adding the new post to the Post table
     db.commit()  # Saving the changes in the database
-    db.refresh(new_post) # Retrieving the post that is stored in the database and storing in new_post variable
+    # Retrieving the post that is stored in the database and storing in new_post variable
+    db.refresh(new_post)
     return {"data": new_post}
 
 
@@ -98,15 +99,14 @@ def update_post(id: int, post: Post):
 
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int):
+def delete_post(id: int, db: Session = Depends(get_db)):
+    post_query = db.query(models.Post).filter(models.Post.id == id)
 
-    cursor.execute(
-        """DELETE FROM posts WHERE id = %s RETURNING * """, (str(id)))
-    deleted_post = cursor.fetchone()
-    conn.commit()
-
-    if deleted_post == None:
+    if post_query.first() == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with id: {id} does not exit")
+
+    post_query.delete(synchronize_session=False)
+    db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
