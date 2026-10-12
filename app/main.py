@@ -55,7 +55,7 @@ def root():
 @app.get("/posts")
 def get_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
-    return {"data": posts}
+    return posts
 
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
@@ -65,7 +65,7 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
     db.commit()  # Saving the changes in the database
     # Retrieving the post that is stored in the database and storing in new_post variable
     db.refresh(new_post)
-    return {"data": new_post}
+    return new_post
 
 
 @app.get("/posts/{id}")  # id is a path parameter
@@ -74,7 +74,7 @@ def get_post(id: int, response: Response, db: Session = Depends(get_db)):
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'post with id: {id} was not found')
-    return {"post_detail": post}
+    return post
 
 
 @app.put("/posts/{id}")
@@ -90,7 +90,7 @@ def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db)
     db.commit()
     updated_post = post_query.first()
 
-    return {"data": updated_post}
+    return updated_post
 
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
