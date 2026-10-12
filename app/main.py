@@ -15,35 +15,6 @@ app = FastAPI()
 
 
 
-while True:
-    try:
-        conn = psycopg2.connect(host='localhost', database='fastapi', user='postgres',
-                                password='dhsosdhosho.', cursor_factory=RealDictCursor)
-        cursor = conn.cursor()
-        print("Database connection was successful")
-        break
-    except Exception as error:
-        print("Connecting to database failed")
-        print("Error: ", error)
-        time.sleep(2)
-
-
-my_posts = [{"title": "title of post 1", "content": "content of post 1", "id": 1}, {
-    "title": "favorite foods", "content": "I like eru", "id": 2}]
-
-
-def find_post(id):
-    for p in my_posts:
-        if p["id"] == id:
-            return p
-
-
-def find_index_post(id):
-    for i, p in enumerate(my_posts):
-        if p['id'] == id:
-            return i
-
-
 # The next three lines are a path operation. Other frameworks call it routes
 
 
