@@ -14,7 +14,6 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 
-
 # The next three lines are a path operation. Other frameworks call it routes
 
 
@@ -29,7 +28,7 @@ def get_posts(db: Session = Depends(get_db)):
     return posts
 
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
+@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
 def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
     new_post = models.Post(**post.dict())
     db.add(new_post)  # Adding the new post to the Post table
