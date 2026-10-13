@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Response, status, HTTPException, Depends
 from fastapi.params import Body
-from typing import Optional
+from typing import Optional, List
 from random import randrange
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -22,7 +22,7 @@ def root():
     return {"message": "Hello World!"}
 
 
-@app.get("/posts")
+@app.get("/posts", response_model=List[schemas.PostResponse])
 def get_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
     return posts
