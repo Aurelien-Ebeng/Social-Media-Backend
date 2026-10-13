@@ -1,98 +1,16 @@
-from fastapi import FastAPI, Response, status, HTTPException, Depends
-from fastapi.params import Body
-from typing import Optional, List
-from random import randrange
-import psycopg2
-from psycopg2.extras import RealDictCursor
-import time
-from sqlalchemy.orm import Session
-from . import models, schemas, utils
-from .database import engine, get_db
+from fastapi import FastAPI
+from . import models
+from .database import engine
+from .routers import post, user
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+app.include_router(post.router)
+app.include_router(user.router)
 
 # The next three lines are a path operation. Other frameworks call it routes
 @app.get("/")  # This is the decorator
 def root():
     return {"message": "Hello World!"}
-
-
-@app.get("/posts", response_model=List[schemas.PostResponse])
-def get_posts(db: Session = Depends(get_db)):
-    posts = db.query(models.Post).all()
-    return posts
-
-
-@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
-def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
-    new_post = models.Post(**post.dict())
-    db.add(new_post)  # Adding the new post to the Post table
-    db.commit()  # Saving the changes in the database
-    # Retrieving the post that is stored in the database and storing in new_post variable
-    db.refresh(new_post)
-    return new_post
-
-
-# id is a path parameter
-@app.get("/posts/{id}", response_model=schemas.PostResponse)
-def get_post(id: int, response: Response, db: Session = Depends(get_db)):
-    post = db.query(models.Post).filter(models.Post.id == id).first()
-    if not post:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f'post with id: {id} was not found')
-    return post
-
-
-@app.put("/posts/{id}", response_model=schemas.PostResponse)
-def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db)):
-    post_query = db.query(models.Post).filter(models.Post.id == id)
-    old_post = post_query.first()
-
-    if old_post == None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"post with id: {id} does not exit")
-
-    post_query.update(post.dict(), synchronize_session=False)
-    db.commit()
-    updated_post = post_query.first()
-
-    return updated_post
-
-
-@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int, db: Session = Depends(get_db)):
-    post_query = db.query(models.Post).filter(models.Post.id == id)
-
-    if post_query.first() == None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"post with id: {id} does not exit")
-
-    post_query.delete(synchronize_session=False)
-    db.commit()
-
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
-@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    hashed_password = utils.hash(user.password)
-    user.password = hashed_password
-    new_user = models.User(**user.dict())
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user
-
-
-@app.get("/users/{id}", response_model=schemas.UserOut)
-def get_user(id: int, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.id == id).first()
-
-    if user == None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"user with id: {id} does not exit")
-
-    return user
