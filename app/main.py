@@ -15,8 +15,6 @@ app = FastAPI()
 
 
 # The next three lines are a path operation. Other frameworks call it routes
-
-
 @app.get("/")  # This is the decorator
 def root():
     return {"message": "Hello World!"}
@@ -38,7 +36,8 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
     return new_post
 
 
-@app.get("/posts/{id}", response_model=schemas.PostResponse)  # id is a path parameter
+# id is a path parameter
+@app.get("/posts/{id}", response_model=schemas.PostResponse)
 def get_post(id: int, response: Response, db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
@@ -75,3 +74,12 @@ def delete_post(id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    new_user = models.User(**user.dict())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
