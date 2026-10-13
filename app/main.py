@@ -38,7 +38,7 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
     return new_post
 
 
-@app.get("/posts/{id}")  # id is a path parameter
+@app.get("/posts/{id}", response_model=schemas.PostResponse)  # id is a path parameter
 def get_post(id: int, response: Response, db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
@@ -47,7 +47,7 @@ def get_post(id: int, response: Response, db: Session = Depends(get_db)):
     return post
 
 
-@app.put("/posts/{id}")
+@app.put("/posts/{id}", response_model=schemas.PostResponse)
 def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db)):
     post_query = db.query(models.Post).filter(models.Post.id == id)
     old_post = post_query.first()
