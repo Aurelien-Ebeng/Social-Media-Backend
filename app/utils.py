@@ -10,3 +10,7 @@ def hash(password: str):
 
 # bcrypt version 4.3.0 and older automatically truncate the hash. Version 5 does not.
 # I was getting an error to truncate the hash manually when I used bcrypt version 5
+
+
+def verify(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)

@@ -33,3 +33,8 @@ class UserOut(BaseModel):
     # The following lines convert the SQLAlchemy object to a Pydantic object
     class Config:
         orm_mode = True
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
