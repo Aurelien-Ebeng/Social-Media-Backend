@@ -4,7 +4,8 @@ from typing import List
 from .. import models, schemas
 from ..database import get_db
 
-router = APIRouter(prefix="/posts")
+router = APIRouter(prefix="/posts", tags=['Posts'])
+# The tags option groups the api routes 
 
 
 @router.get("/", response_model=List[schemas.PostResponse])
