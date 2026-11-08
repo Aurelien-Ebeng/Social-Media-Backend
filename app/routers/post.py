@@ -25,7 +25,7 @@ def create_posts(
     db: Session = Depends(get_db),
     current_user: int = Depends(oauth2.get_current_user),
 ):
-    new_post = models.Post(**post.dict())
+    new_post = models.Post(owner_id=current_user.id, **post.dict())
     db.add(new_post)  # Adding the new post to the Post table
     db.commit()  # Saving the changes in the database
     # Retrieving the post that is stored in the database and storing in new_post variable
