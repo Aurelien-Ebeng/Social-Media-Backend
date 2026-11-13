@@ -3,12 +3,14 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from .. import models, schemas, oauth2
 from ..database import get_db
+from sqlalchemy import func
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 # The tags option groups the api routes
 
 
-@router.get("/", response_model=List[schemas.PostResponse])
+#@router.get("/",response_model=List[schemas.PostResponse])
+@router.get("/")
 def get_posts(
     db: Session = Depends(get_db),
     current_user: int = Depends(oauth2.get_current_user),
@@ -23,7 +25,21 @@ def get_posts(
         .offset(skip)
         .all()
     )
-    return posts
+
+    # SQLAlchemy use inner join by default while SQL uses outer join by default
+    results = (
+        db.query(models.Post, func.count(models.Vote.post_id).label("votes"))
+        .join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)
+        .group_by(models.Post.id)
+        .all()
+        
+    )
+    
+
+    dict_list = [row._mapping for row in results]
+
+    return dict_list
+
 
 
 @router.post(
