@@ -55,19 +55,29 @@ def create_posts(
 
 
 # id is a path parameter
-@router.get("/{id}", response_model=schemas.PostResponse)
+@router.get("/{id}", response_model=schemas.PostOut)
 def get_post(
     id: int,
     response: Response,
     db: Session = Depends(get_db),
     current_user: int = Depends(oauth2.get_current_user),
 ):
-    post = db.query(models.Post).filter(models.Post.id == id).first()
-    if not post:
+    post_row = (
+        db.query(models.Post, func.count(models.Vote.post_id).label("votes"))
+        .join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)
+        .group_by(models.Post.id)
+        .filter(models.Post.id == id)
+        .first()
+    )
+
+    if not post_row:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with id: {id} was not found",
         )
+
+    post = {"post": post_row[0], "votes": post_row[1]}
+
     return post
 
 
