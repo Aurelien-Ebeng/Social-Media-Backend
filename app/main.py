@@ -27,4 +27,4 @@ app.include_router(vote.router)
 # The next three lines are a path operation. Other frameworks call it routes
 @app.get("/")  # This is the decorator
 def root():
-    return {"message": "Hello World!"}
+    return {"message": "Hello World! This is FastAPI"}
