@@ -17,3 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copying all files from your current directory on your machine to the working directory in the image
 COPY . .
+
+# The following is equivalent to uvicorn app.main:app --host 0.0.0.0 --port 8000
+# Command to start app
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0","--port","8000"]
